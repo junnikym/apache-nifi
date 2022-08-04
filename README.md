@@ -55,3 +55,58 @@ NiFi의 핵심 컴포넌트이다. FlowFile은 Processor에 의해 생성되며,
 
 ## Nifi 사용해보기
 
+```yaml
+version: "3"
+services:
+    zookeeper:
+        hostname: zookeeper
+        container_name: zookeeper
+        image: 'zookeeper'
+        environment:
+            - ALLOW_ANONYMOUS_LOGIN=yes
+        networks:
+            - nifinet
+
+    nifi:
+        image: apache/nifi:1.11.4
+        ports:
+            - 8080:8080
+        networks:
+            - nifinet
+        environment:
+            - NIFI_WEB_HTTP_PORT=8080
+            - NIFI_CLUSTER_IS_NODE=true
+            - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+            - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+            - NIFI_ELECTION_MAX_WAIT=1 min
+
+networks:
+    nifinet:
+        driver: bridge
+```
+다음과 같이 <code>docker-compose.yaml</code> 을 작성하여 환경을 구성하였다. 
+* ref : <https://taaewoo.tistory.com/41?category=898173>
+
+``` sh 
+> docker-compose up -d
+```
+다음 명령어를 통해 container 를 생성하면 <localhost:8080/nifi> url 로 접속이 가능해진다.   
+해당 url 로 접속하게되면 다음과 같은 화면이 뜬다.
+
+![NiFi Index Screen](./images/nifi_index_screen.png)
+
+상단의 아이콘을 workspace 에 Drag & Drop 을 함으로써 Processor, Input, Output 등.. 을 추가할 수 있다.
+
+![NiFi Processor Creation](./images/nifi_processor_screen.png)
+
+Drag & Drop 으로 Processor 를 추가하게 되면 다음과 같이 Processor 의 종류를 선택할 수 있다. 
+
+![NiFi Connection](./images/nifi_connection_screen.png)
+
+이렇게 생성된 Processor 위에 커서를 두면 연결을 의미하는 아이콘이 발생한다. 아이콘을 드래그 함으로써 아래와 서로 연결을 시켜줄 수 있다.
+
+이렇게 연결이 생성되면 대기 Queue 와 log 를 확인 할 수 있다.
+
+![NiFi Connection Log](./images/nifi_connection_log_screen.png)
+
+또한 이런 Processor 는 화면 왼쪽 중단에 Operate 이란 작은 창에서 실행, 종료, 삭제 등.. 여러가지 일을 클릭만으로 손쉽게 관리할 수 있다.
